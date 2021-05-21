@@ -9,6 +9,7 @@ class RoutePath extends Base
     protected $fillable = [
         'route_id',
         'path',
+        'host',
     ];
 
     public function parameters()

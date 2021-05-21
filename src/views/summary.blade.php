@@ -1,29 +1,50 @@
 @extends($stats_layout)
 
 @section('page-contents')
-	<div id="pageViewsLine" class="chart no-padding"></div>
+	<div id="pageViewsLine" class="chart no-padding" style="height:200px;"></div>
 @stop
 
 @section('page-secondary-contents')
-	<div class="row">
-		<div class="col-lg-12">
-			<div class="panel panel-primary">
-				<div class="panel-heading">
-					<h3 class="panel-title"><i class="fa fa-sun-o"></i> @lang('tracker::tracker.page_views_by_country')</h3>
-				</div>
-				<div class="panel-body">
-					<div id="pageViewsByCountry" style="height: 450px;"></div>
-				</div>
-			</div>
-		</div>
-	</div><!-- /.row -->
-
-	@include('pragmarx/tracker::_summaryPiechart')
+	<table id="table_div" class="display" cellspacing="0" width="100%"></table>
 @stop
 
 @section('inline-javascript')
 	jQuery(function()
     {
+		
+		$("input.dateRange").daterangepicker({
+			"alwaysShowCalendars": true,
+			opens: "left",
+			startDate: "{{explode('~', $date_range)[0]}}",
+			endDate: "{{explode('~', $date_range)[1]}}",
+			ranges: {
+				"今天": [moment(), moment()],
+				"過去 7 天": [moment().subtract(6, "days"), moment()],
+				"本月": [moment().startOf("month"), moment().endOf("month")],
+				"上個月": [moment().subtract(1, "month").startOf("month"), moment().subtract(1, "month").endOf("month")]
+			},
+			locale: {
+				format: "YYYY-MM-DD",
+				separator: " ~ ",
+				applyLabel: "確定",
+				cancelLabel: "清除",
+				fromLabel: "開始日期",
+				toLabel: "結束日期",
+				customRangeLabel: "自訂日期區間",
+				daysOfWeek: ["日", "一", "二", "三", "四", "五", "六"],
+				monthNames: ["1月", "2月", "3月", "4月", "5月", "6月",
+				"7月", "8月", "9月", "10月", "11月", "12月"
+				],
+				firstDay: 1
+			}
+		});
+		$("input.dateRange").on("cancel.daterangepicker", function(ev, picker) {
+			$(this).val("");
+		});
+		$("input.dateRange").on("apply.daterangepicker", function(ev, picker) {
+			location.href= "{{route('tracker.stats.index')}}?date_range="+ $(this).val();
+		});
+
 		console.log(jQuery('#pageViews'));
 
 		var pageViewsLine = Morris.Line({
@@ -71,13 +92,27 @@
             {
                 if (data[key].date !== 'undefined')
                 {
-					data[key].date = moment(data[key].date, "YYYY-MM-DD").format('dddd[,] MMM Do');
+					//data[key].date = moment(data[key].date, "YYYY-MM-DD").format('dddd[,] MMM Do');
+					data[key].date = data[key].date;
 				}
             }
 
 			return data;
 		};
 	});
+
+	@include(
+        'pragmarx/tracker::_datatables',
+        array(
+            'datatables_ajax_route' => route('tracker.stats.api.pageviewsbyhost'),
+            'datatables_columns' =>
+            '
+                { "data" : "host",     "title" : "'.trans('tracker::tracker.host').'", "orderable": true, "searchable": false },
+                { "data" : "total",    "title" : "'.trans('tracker::tracker.pageview').'", "orderable": false, "searchable": false },
+            '
+        )
+    )
+
 @stop
 
 @section('required-scripts-top')

@@ -1,8 +1,24 @@
 @extends('pragmarx/tracker::html')
 
 @section('body')
+    <style>
+    @media (min-width: 768px){
+        #page-wrapper {
+            margin: 0 0 0 0;
+            padding: 0 30px;
+        }
+        .sidebar {
+            z-index: 1;
+            position: absolute;
+            width: 130px;
+            margin-top: 51px;
+        }
+    }
+    </style>
     <div id="wrapper">
 	    <nav class="navbar navbar-default navbar-static-top" role="navigation" style="margin-bottom: 0">
+            
+        {{--
             <div class="navbar-header">
 	            <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
                     <span class="sr-only">@lang("tracker::tracker.toggle_navigation")</span>
@@ -12,9 +28,13 @@
                 </button>
                 <a class="navbar-brand" href="{{route('tracker.stats.index')}}">@lang("tracker::tracker.tracker_title")</a>
             </div>
+        --}}
             <!-- /.navbar-header -->
-
-		    <ul class="nav navbar-top-links navbar-right navbar-nav">
+            @if( Session::get('tracker.stats.page') !='visits')
+                <input type="text" class="dateRange" value="{{$date_range}}" style="font-size:23px; float:right; padding:10px;"/>
+		        <span  style="font-size:23px; float:right; padding:10px;">日期區間：</span>
+            {{--
+            <ul class="nav navbar-top-links navbar-right navbar-nav">
 				<li {{ Session::get('tracker.stats.days') == '0' ? 'class="active"' : '' }}>
 					<a href="{{route('tracker.stats.index')}}?days=0">@lang("tracker::tracker.today")</a>
 				</li>
@@ -35,16 +55,19 @@
 					<a href="{{route('tracker.stats.index')}}?days=365">@choice("tracker::tracker.no_years",1, ["count" => 1])</a>
 				</li>
             </ul>
+            --}}
+            @endif
             <!-- /.navbar-top-links -->
 
+            {{--
 		    <div class="navbar-default sidebar" role="navigation">
 			    <div class="sidebar-nav navbar-collapse">
 				    <ul class="nav" id="side-menu">
                         <li>
-                            <a href="{{route('tracker.stats.index')}}?page=visits" class="{{ Session::get('tracker.stats.page') =='visits' ? 'active' : '' }}" ><i class="fa fa-dashboard fa-fw"></i> @lang("tracker::tracker.visits") <span class="{{ Session::get('tracker.stats.page') =='visits' ? 'fa arrow' : '' }}"></span></a>
+                            <a href="{{route('tracker.stats.index')}}?page=summary" class="{{ Session::get('tracker.stats.page') =='summary' ? 'active' : '' }}"><i class="fa fa-bar-chart-o fa-fw"></i> @lang("tracker::tracker.summary") <span class="{{ Session::get('tracker.stats.page') =='summary' ? 'fa arrow' : '' }}"></span></a>
                         </li>
                         <li>
-                            <a href="{{route('tracker.stats.index')}}?page=summary" class="{{ Session::get('tracker.stats.page') =='summary' ? 'active' : '' }}"><i class="fa fa-bar-chart-o fa-fw"></i> @lang("tracker::tracker.summary") <span class="{{ Session::get('tracker.stats.page') =='summary' ? 'fa arrow' : '' }}"></span></a>
+                            <a href="{{route('tracker.stats.index')}}?page=visits" class="{{ Session::get('tracker.stats.page') =='visits' ? 'active' : '' }}" ><i class="fa fa-dashboard fa-fw"></i> @lang("tracker::tracker.visits") <span class="{{ Session::get('tracker.stats.page') =='visits' ? 'fa arrow' : '' }}"></span></a>
                         </li>
                         <li>
                             <a href="{{route('tracker.stats.index')}}?page=users" class="{{ Session::get('tracker.stats.page') =='users' ? 'active' : '' }}"><i class="fa fa-user fa-fw"></i> @lang("tracker::tracker.users") <span class="{{ Session::get('tracker.stats.page') =='users' ? 'fa arrow' : '' }}"></span></a>
@@ -60,6 +83,7 @@
                 </div>
                 <!-- /.sidebar-collapse -->
             </div>
+            --}}
             <!-- /.navbar-static-side -->
         </nav>
 

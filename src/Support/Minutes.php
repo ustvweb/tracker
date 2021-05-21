@@ -3,9 +3,15 @@
 namespace PragmaRX\Tracker\Support;
 
 use Carbon\Carbon;
+use Session as LaravelSession;
 
 class Minutes
 {
+    /**
+     * @var
+     */
+    private $date;
+
     /**
      * @var
      */
@@ -48,13 +54,14 @@ class Minutes
      */
     private function calculateStartEnd()
     {
-        if ($this->minutes == 0) {
-            $this->setToday();
-        } else {
-            $this->start = Carbon::now()->subMinutes($this->minutes);
+        //if ($this->minutes == 0) {
+            //$this->setToday();
+        //} else {
+            $date = LaravelSession::get('tracker.stats.date');
+            $this->start = strftime("%Y-%m-%d",strtotime("-{$this->minutes}minutes ".$date)). ' 00:00:00';
 
-            $this->end = Carbon::now();
-        }
+            $this->end = $date.' 23:59:59';
+        //}
     }
 
     /**

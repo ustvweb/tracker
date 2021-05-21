@@ -1,7 +1,7 @@
 <?php
 
 namespace PragmaRX\Tracker\Vendor\Laravel\Models;
-
+use DB;
 class Log extends Base
 {
     protected $table = 'tracker_log';
@@ -18,6 +18,7 @@ class Log extends Base
         'is_json',
         'wants_json',
         'error_id',
+        'host',
     ];
 
     public function session()
@@ -47,17 +48,127 @@ class Log extends Base
 
     public function pageViews($minutes, $results)
     {
-        $query = $this->select(
-            $this->getConnection()->raw('DATE(created_at) as date, count(*) as total')
-        )->groupBy(
-            $this->getConnection()->raw('DATE(created_at)')
-        )
-            ->period($minutes)
-            ->orderBy('date');
+        $query = $this->with('path')->with('session')
+        ->leftJoin('tracker_sessions', 'tracker_sessions.id', '=', 'session_id')
+        ->whereHas('session', function($query){
+            $query->where('is_robot', '0');            
+            $query->whereHas('agent', function($query){
+                $query->where('name', 'not like', '%Linux%');
+            });
+        })
+        ->whereHas('path', function($query){
+            $query->where('path', 'not like', '%data%');
+            $query->where('path', 'not like', '%jpg%');
+            $query->where('path', 'not like', '%png%');
+            $query->where('path', 'not like', '%ico%');
+            $query->where('path', 'not like', '%css%');
+            $query->where('path', 'not like', '%js%');
+            $query->where('path', 'not like', '%stats%');
+            $query->where('path', 'not like', '%ViewIncrement%');
+            $query->where('path', 'not like', '%xml%');
+            $query->where('path', 'not like', '%test%');
+            $query->where('path', 'not like', '%rss%');
+            $query->where('path', 'not like', '%ttf%');
+            $query->where('path', 'not like', '%woff%');
+        })
+        ->where('is_ajax', 0);
+        if(substr($minutes->getStart(), 0, 10) != substr($minutes->getEnd(), 0, 10)){
+            $query = $query->select(
+                $this->getConnection()->raw("DATE(`tracker_log`.created_at) as date, count(*) as total")
+            );
+            $query = $query->groupBy(
+                $this->getConnection()->raw('DATE(`tracker_log`.created_at), concat(`tracker_sessions`.`client_ip`, `tracker_log`.`path_id` )')
+            );
+        }else{
+            $query = $query->select(
+                $this->getConnection()->raw("substr( `tracker_log`.`created_at`, 12,2) as date, count(*) as total")
+            );
+            $query = $query->groupBy(
+                $this->getConnection()->raw('left( `tracker_log`.`created_at`, 13)')
+            );
+        }
+        $query = $query->period($minutes, 'tracker_log')
+                        ->orderBy('date');
 
         if ($results) {
-            return $query->get();
+            if(substr($minutes->getStart(), 0, 10) != substr($minutes->getEnd(), 0, 10)){
+                $query = $query->get();
+                $last_data = [];
+                foreach($query as $item){
+                    $last_data[$item->date]['date'] =  $item->date; 
+                    if(!isset($last_data[$item->date]['total'])) $last_data[$item->date]['total'] = 0;                   
+                    $last_data[$item->date]['total'] ++;
+                }
+                return array_values($last_data);
+            }else{
+                return $query->get();
+            }
         }
+
+        return $query;
+    }
+
+    public function pageViewsByHost($minutes, $results)
+    {
+        $query = $this->leftJoin('tracker_sessions', 'tracker_sessions.id', '=', 'session_id')
+        ->whereHas('session', function($query){
+            $query->where('is_robot', '0');            
+            $query->whereHas('agent', function($query){
+                $query->where('name', 'not like', '%Linux%');
+            });
+        })
+        ->whereHas('path', function($query){
+            $query->where('path', 'not like', '%data%');
+            $query->where('path', 'not like', '%jpg%');
+            $query->where('path', 'not like', '%png%');
+            $query->where('path', 'not like', '%ico%');
+            $query->where('path', 'not like', '%css%');
+            $query->where('path', 'not like', '%js%');
+            $query->where('path', 'not like', '%stats%');
+            $query->where('path', 'not like', '%ViewIncrement%');
+            $query->where('path', 'not like', '%xml%');
+            $query->where('path', 'not like', '%test%');
+            $query->where('path', 'not like', '%rss%');
+            $query->where('path', 'not like', '%ttf%');
+            $query->where('path', 'not like', '%woff%');
+        })
+        ->where('is_ajax', 0);
+
+            $query = $query->select(
+                $this->getConnection()->raw("host, count(*) as total, concat(date(`tracker_log`.created_at),`tracker_sessions`.`client_ip`, `tracker_log`.`path_id`) as dest ")
+            );
+            $query = $query->groupBy( 
+                            $this->getConnection()->raw("host, dest")
+            );
+        $query = $query->period($minutes, 'tracker_log')
+                        ->orderBy('host')
+                        ->orderBy('dest');
+        
+        $count = DB::table( DB::raw("({$query->toSql()}) as sub") )
+        ->mergeBindings($query->getQuery()) // you need to get underlying Query Builder
+        ->select(
+               $this->getConnection()->raw("host, count(*) as total")
+            );
+        $count = $count->groupBy( 
+                            $this->getConnection()->raw("host")
+            )
+        // ->where(..) correct
+
+        ->get();dump($count);exit;
+        
+        $query = $query->get();
+        $last_data = [];
+        $temp = '';$i=0;dump($query[2]);
+        foreach($query as $index => $item){
+            if($item->dest == $temp) continue;
+            $temp = $item->dest; 
+            if(!isset($query[$item->host])) $query[$item->host] = [];           
+            $query[$item->host]->host =  $item->host; 
+            if(!isset($query[$item->host]['total'])) $query[$item->host]['total'] = 0;                   
+            $query[$item->host]['total'] ++;
+            unset($query[$index]);
+        }
+        $query = array_values($query);
 
         return $query;
     }

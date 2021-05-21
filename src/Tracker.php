@@ -177,6 +177,7 @@ class Tracker
             'is_secure'  => $this->request->isSecure(),
             'is_json'    => $this->request->isJson(),
             'wants_json' => $this->request->wantsJson(),
+            'host'       => $this->request->getHttpHost(),
         ];
     }
 
@@ -415,6 +416,11 @@ class Tracker
     public function pageViews($minutes, $results = true)
     {
         return $this->dataRepositoryManager->pageViews(Minutes::make($minutes), $results);
+    }
+
+    public function pageViewsByHost($minutes, $results = true)
+    {
+        return $this->dataRepositoryManager->pageViewsByHost(Minutes::make($minutes), $results);
     }
 
     public function pageViewsByCountry($minutes, $results = true)

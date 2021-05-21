@@ -516,6 +516,8 @@ class ServiceProvider extends PragmaRXServiceProvider
 
                     $router->get('api/pageviewsbycountry', ['as' => 'tracker.stats.api.pageviewsbycountry', 'uses' => 'Stats@apiPageviewsByCountry']);
 
+                    $router->get('api/pageviewsbyhost', ['as' => 'tracker.stats.api.pageviewsbyhost', 'uses' => 'Stats@apiPageviewsByHost']);
+
                     $router->get('api/log/{uuid}', ['as' => 'tracker.stats.api.log', 'uses' => 'Stats@apiLog']);
 
                     $router->get('api/errors', ['as' => 'tracker.stats.api.errors', 'uses' => 'Stats@apiErrors']);

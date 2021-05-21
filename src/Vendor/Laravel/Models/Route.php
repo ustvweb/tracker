@@ -9,6 +9,7 @@ class Route extends Base
     protected $fillable = [
         'name',
         'action',
+        'host',
     ];
 
     public function paths()

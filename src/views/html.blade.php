@@ -23,6 +23,7 @@
     <link href="{{ $stats_template_path }}/dist/css/sb-admin-2.css" rel="stylesheet">
 
     <link href="//cdn.datatables.net/1.10.2/css/jquery.dataTables.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
 
 	<link
 		rel="stylesheet"
@@ -43,8 +44,9 @@
 
     <!-- SB Admin Scripts - Include with every page -->
     <script src="{{ $stats_template_path }}/js/sb-admin-2.js"></script>
-
-    <script src="//cdnjs.cloudflare.com/ajax/libs/moment.js/2.7.0/moment.min.js"></script>
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
 
     <script src="//cdn.datatables.net/1.10.2/js/jquery.dataTables.min.js"></script>
 

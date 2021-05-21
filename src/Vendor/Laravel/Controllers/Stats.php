@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
 use PragmaRX\Tracker\Vendor\Laravel\Facade as Tracker;
 use PragmaRX\Tracker\Vendor\Laravel\Support\Session;
+use Session as LaravelSession;
 
 class Stats extends Controller
 {
@@ -88,12 +89,35 @@ class Stats extends Controller
     public function summary()
     {
         return View::make('pragmarx/tracker::summary')
-                ->with('title', ''.trans('tracker::tracker.page_views_summary').'');
+                ->with('title', ''.trans('tracker::tracker.page_views_summary').'')                
+                ->with('date_range', LaravelSession::get('tracker.stats.date_range'));
     }
 
     public function apiPageviews(Session $session)
     {
-        return Tracker::pageViews($session->getMinutes())->toJson();
+        $result = Tracker::pageViews($session->getMinutes());
+        if(is_array($result)){
+            return json_encode($result);
+        }else{
+            return $result->toJson();
+        }
+    }
+
+    public function apiPageviewsByHost(Session $session)
+    {
+        
+        $query = Tracker::pageViewsByHost($session->getMinutes(), false);
+dump($query);
+        return Datatables::of($query)
+
+            ->edit_column('Host', function ($row) {
+                return    $row->host;
+            })
+            ->edit_column('Total', function ($row) {
+                return    $row->total;
+            })
+
+            ->make(true);
     }
 
     public function apiPageviewsByCountry(Session $session)
